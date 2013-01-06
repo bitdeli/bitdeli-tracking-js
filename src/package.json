@@ -1,0 +1,11 @@
+{
+    "name": "bitdeli-tracking-js",
+    "version": "0.0.1",
+    "dependencies": {
+        "domready": "0.2.11",
+        "reqwest": "0.6.0",
+        "ender-json": "1.1.0"
+    },
+    "private": true,
+    "main": "./tracking.js"
+}
