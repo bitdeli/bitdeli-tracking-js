@@ -7,6 +7,10 @@
         // Set up global command queue
         var _bdq = _bdq || [];
         _bdq["__SV"] = "0.0.1";
+        _bdq.push(["_setInput", "BITDELI_INPUT_ID"]);
+        _bdq.push(["_setToken", "BITDELI_INPUT_AUTH"]);
+        _bdq.push(["_identify", "tracking_test"]);
+        _bdq.push(["_trackEvent", { test: (new Date).getTime() }]);
 
         (function() {
             // Create script element
