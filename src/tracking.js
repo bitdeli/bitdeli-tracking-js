@@ -447,7 +447,7 @@ _.UUID = (function() {
 // ------------------------------------
 $.domReady(function() {
     // Replace queue placeholder with library object
-    window._bdq = new Bitdeli.Library(window._bdq);
+    context._bdq = new Bitdeli.Library(context._bdq);
 });
 
 
