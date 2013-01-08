@@ -87,7 +87,8 @@ _.extend(Bitdeli.Library.prototype, {
 
     _execute: function(call) {
         // TODO: whitelist functions
-        this[call[0]].apply(this, call.slice(1));
+        var method = this[call[0]];
+        if (_.isFunction(method)) method.apply(this, call.slice(1));
     }
 
 });
