@@ -54,7 +54,7 @@ _.extend(Bitdeli.Library.prototype, {
         this._inputId = inputId;
         this._token = token;
         this.cookie = new Bitdeli.Cookie({
-            name: inputId + token
+            name: inputId
         });
     },
 
