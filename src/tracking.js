@@ -60,7 +60,19 @@ _.extend(Bitdeli.Library.prototype, {
 
     identify: function(uid) {
         if (!_.isString(uid)) return;
-        this.cookie.set({ $uid: uid });
+        this.set({ $uid: uid });
+    },
+
+    set: function(props) {
+        this.cookie.set(props);
+    },
+
+    setOnce: function(props) {
+        this.cookie.setOnce(props);
+    },
+
+    unset: function(prop) {
+        this.cookie.unset(prop);
     },
 
     trackEvent: function(props, opts) {

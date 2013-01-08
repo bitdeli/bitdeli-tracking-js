@@ -9,7 +9,9 @@
         _bdq["__SV"] = "0.0.1";
         _bdq.push(["setAccount", "BITDELI_INPUT_ID", "BITDELI_INPUT_AUTH"]);
         // _bdq.push(["identify", "USER_ID"]);
-        _bdq.push(["trackEvent", { test: (new Date).getTime() }]);
+        _bdq.push(["setOnce", { initialReferrer: document.referrer }]);
+        _bdq.push(["set", { page: window.location.href }]);
+        _bdq.push(["trackEvent", { action: "test" }]);
 
         (function() {
             // Create script element
