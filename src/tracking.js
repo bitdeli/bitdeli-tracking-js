@@ -34,18 +34,14 @@ _bdq.__LV = "0.0.1";
 
 // Main library object
 Bitdeli.Library = function(queue, options) {
+    _.bindAll(this, "_execute");
     this.options = options || {};
-    this.initialize.apply(this, arguments);
+    this.queue = new Bitdeli.Queue(queue, {
+        execute: this._execute
+    });
 };
 
 _.extend(Bitdeli.Library.prototype, {
-
-    initialize: function(queue, options) {
-        _.bindAll(this, "_execute");
-        this.queue = new Bitdeli.Queue(queue, {
-            execute: this._execute
-        });
-    },
 
     // Keep the standard async-array-push interface
     push: function() {
@@ -100,15 +96,10 @@ _.extend(Bitdeli.Library.prototype, {
 // Main call queue
 Bitdeli.Queue = function(queue, options) {
     this.options = options || {};
-    this.initialize.apply(this, arguments);
+    this.executeAll(queue);
 };
 
 _.extend(Bitdeli.Queue.prototype, {
-
-    initialize: function(queue, options) {
-        // Execute initial calls
-        this.executeAll(queue);
-    },
 
     executeAll: function(queue) {
         var setAccount,
@@ -141,19 +132,15 @@ Bitdeli.Cookie = function(options) {
     this.options = options || {};
     this.props = {};
     this.name = "bd_" + _.cookie.utils.escape(options.name);
-    this.initialize.apply(this, arguments);
+    this.load();
+    this.setOnce({
+        $uid: this._generateUUID()
+    });
 };
 
 _.extend(Bitdeli.Cookie.prototype, {
 
     _hiddenProps: ["$uid"],
-
-    initialize: function(options) {
-        this.load();
-        this.setOnce({
-            $uid: this._generateUUID()
-        });
-    },
 
     load: function() {
         var cookie = _.cookie.get(this.name);
