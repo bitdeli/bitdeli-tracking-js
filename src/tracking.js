@@ -49,7 +49,7 @@ _.extend(Bitdeli.Library.prototype, {
         this.queue.executeAll(args);
     },
 
-    _setAccount: function(inputId, token) {
+    setAccount: function(inputId, token) {
         if (!_.isString(inputId) || !_.isString(token)) return;
         this._inputId = inputId;
         this._token = token;
@@ -58,12 +58,12 @@ _.extend(Bitdeli.Library.prototype, {
         });
     },
 
-    _identify: function(uid) {
+    identify: function(uid) {
         if (!_.isString(uid)) return;
         this.cookie.set({ $uid: uid });
     },
 
-    _trackEvent: function(props, opts) {
+    trackEvent: function(props, opts) {
         opts = opts || {};
         var params = {
             url: [EVENTS_API, this._inputId].join("/"),
