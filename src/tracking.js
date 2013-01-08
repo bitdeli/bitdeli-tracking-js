@@ -205,14 +205,14 @@ _.extend(Bitdeli.Request.prototype, {
             // CORS supported
             this._post();
         } else {
-            // CORS not supported
-            // TODO: create GET request via script tag
+            // CORS not supported, use JSONP via script tag insertion
+            this._jsonpGet();
         }
     },
 
     _post: function(opts) {
         opts = _.extend({}, this.options, opts);
-        var xhr = new XMLHttpRequest(),
+        var xhr = new context.XMLHttpRequest(),
             url = [EVENTS_API, opts.inputId].join("/");
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
@@ -236,6 +236,50 @@ _.extend(Bitdeli.Request.prototype, {
             uid: opts.uid,
             event: opts.event
         }));
+    },
+
+    _jsonpGet: function(opts) {
+        opts = _.extend({}, this.options, opts);
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        script.async = true;
+        script.defer = true;
+        script.src = this._buildGetUrl(opts);
+        var firstScript = document.getElementsByTagName("script")[0];
+        firstScript.parentNode.insertBefore(script, firstScript);
+    },
+
+    _buildGetUrl: function(opts) {
+        opts = opts || {};
+        var url = [EVENTS_API, opts.inputId].join("/"),
+            params = {};
+        if (opts.auth) params.auth = opts.auth;
+        if (_.has(opts, "uid")) params.uid = opts.uid;
+        if (opts.event) {
+            params.event = this._base64Encode(
+                JSON.stringify(opts.event)
+            );
+        }
+        return url + "?" + this._serializeParams(params);
+    },
+
+    _base64Encode: function(data) {
+        var encoded = context.btoa(data);
+        // http://en.wikipedia.org/wiki/Base64#URL_applications
+        return encoded.replace(/\+/g, "_")
+                      .replace(/\//g, "-")
+                      .replace(/\=/g, "");
+    },
+
+    _serializeParams: function(params) {
+        params = params || {};
+        var encoded = _.map(params, function(val, key) {
+            return [
+                encodeURIComponent(key),
+                encodeURIComponent(val.toString())
+            ].join("=");
+        });
+        return encoded.join("&");
     }
 
 });
@@ -478,6 +522,65 @@ _.UUID = (function() {
     return { v4: v4 };
 
 })();
+
+
+// base64.js
+// https://github.com/davidchambers/Base64.js
+;(function (window) {
+
+    var
+        object = typeof window != 'undefined' ? window : exports,
+        chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=',
+        INVALID_CHARACTER_ERR = (function () {
+            // fabricate a suitable error object
+            try { document.createElement('$'); }
+            catch (error) { return error; }}());
+
+    // encoder
+    // [https://gist.github.com/999166] by [https://github.com/nignag]
+    object.btoa || (
+    object.btoa = function (input) {
+        for (
+            // initialize result and counter
+            var block, charCode, idx = 0, map = chars, output = '';
+            // if the next input index does not exist:
+            //   change the mapping table to "="
+            //   check if d has no fractional digits
+            input.charAt(idx | 0) || (map = '=', idx % 1);
+            // "8 - idx % 1 * 8" generates the sequence 2, 4, 6, 8
+            output += map.charAt(63 & block >> 8 - idx % 1 * 8)
+        ) {
+            charCode = input.charCodeAt(idx += 3/4);
+            if (charCode > 0xFF) throw INVALID_CHARACTER_ERR;
+            block = block << 8 | charCode;
+        }
+        return output;
+    });
+
+    // decoder
+    // [https://gist.github.com/1020396] by [https://github.com/atk]
+    object.atob || (
+    object.atob = function (input) {
+        input = input.replace(/=+$/, '')
+        if (input.length % 4 == 1) throw INVALID_CHARACTER_ERR;
+        for (
+            // initialize result and counters
+            var bc = 0, bs, buffer, idx = 0, output = '';
+            // get next character
+            buffer = input.charAt(idx++);
+            // character found in table? initialize bit storage and add its ascii value;
+            ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
+                // and if not first of each 4 characters,
+                // convert the first 8 bits to one ascii character
+                bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
+        ) {
+            // try to find character in table (0-63, not found => -1)
+            buffer = chars.indexOf(buffer);
+        }
+        return output;
+    });
+
+}(context));
 
 
 // Bitdeli tracking library entry point
