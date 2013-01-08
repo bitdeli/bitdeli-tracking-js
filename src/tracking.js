@@ -133,7 +133,7 @@ _.extend(Bitdeli.Cookie.prototype, {
     initialize: function(options) {
         this.load();
         this.setOnce({
-            $uid: _.UUID.v4()
+            $uid: this._generateUUID()
         });
     },
 
@@ -174,6 +174,13 @@ _.extend(Bitdeli.Cookie.prototype, {
         delete this.props[prop];
         this.save();
         return true;
+    },
+
+    _generateUUID: function() {
+        return [
+            (+new Date()).toString(16),
+            _.UUID.v4()
+        ].join("-");
     }
 
 });
