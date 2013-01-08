@@ -32,51 +32,25 @@ var _bdq = context._bdq || [];
 _bdq.__LV = "0.0.1";
 
 
-// Main call queue
-Bitdeli.Queue = function(queue, options) {
+// Main library object
+Bitdeli.Library = function(queue, options) {
     this.options = options || {};
     this.initialize.apply(this, arguments);
 };
 
-_.extend(Bitdeli.Queue.prototype, {
+_.extend(Bitdeli.Library.prototype, {
 
     initialize: function(queue, options) {
-        // Execute initial calls
-        this._executeAll(queue);
+        _.bindAll(this, "_execute");
+        this.queue = new Bitdeli.Queue(queue, {
+            execute: this._execute
+        });
     },
 
     // Keep the standard async-array-push interface
     push: function() {
         var args = Array.prototype.slice.call(arguments);
-        this._executeAll(args);
-    },
-
-    _executeAll: function(queue) {
-        var setAccount,
-            configCalls = [],
-            trackingCalls = [];
-
-        _.each(queue, function(call) {
-            if (!_.isArray(call)) return;
-            var fnName = call[0];
-            if (!_.isString(fnName)) return;
-            if (fnName.indexOf('setAccount') != -1) {
-                setAccount = call;
-            } else if (fnName.indexOf('track') != -1) {
-                trackingCalls.push(call);
-            } else {
-                configCalls.push(call);
-            }
-        }, this);
-
-        if (setAccount) this._execute(setAccount);
-        _.each(configCalls, this._execute, this);
-        _.each(trackingCalls, this._execute, this);
-    },
-
-    _execute: function(call) {
-        // TODO: whitelist functions
-        this[call[0]].apply(this, call.slice(1));
+        this.queue.executeAll(args);
     },
 
     _setAccount: function(inputId, token) {
@@ -113,6 +87,50 @@ _.extend(Bitdeli.Queue.prototype, {
         if (_.isFunction(opts.success)) params.success = opts.success;
         if (_.isFunction(opts.error)) params.error = opts.error;
         reqwest(params);
+    },
+
+    _execute: function(call) {
+        // TODO: whitelist functions
+        this[call[0]].apply(this, call.slice(1));
+    }
+
+});
+
+
+// Main call queue
+Bitdeli.Queue = function(queue, options) {
+    this.options = options || {};
+    this.initialize.apply(this, arguments);
+};
+
+_.extend(Bitdeli.Queue.prototype, {
+
+    initialize: function(queue, options) {
+        // Execute initial calls
+        this.executeAll(queue);
+    },
+
+    executeAll: function(queue) {
+        var setAccount,
+            configCalls = [],
+            trackingCalls = [];
+
+        _.each(queue, function(call) {
+            if (!_.isArray(call)) return;
+            var fnName = call[0];
+            if (!_.isString(fnName)) return;
+            if (fnName.indexOf('setAccount') != -1) {
+                setAccount = call;
+            } else if (fnName.indexOf('track') != -1) {
+                trackingCalls.push(call);
+            } else {
+                configCalls.push(call);
+            }
+        }, this);
+
+        if (setAccount) this.options.execute(setAccount);
+        _.each(configCalls, this.options.execute);
+        _.each(trackingCalls, this.options.execute);
     }
 
 });
@@ -428,8 +446,8 @@ _.UUID = (function() {
 // Bitdeli tracking library entry point
 // ------------------------------------
 $.domReady(function() {
-    // Replace queue placeholder with real Queue object
-    window._bdq = new Bitdeli.Queue(window._bdq);
+    // Replace queue placeholder with library object
+    window._bdq = new Bitdeli.Library(window._bdq);
 });
 
 
