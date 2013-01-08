@@ -4,7 +4,6 @@
     "dependencies": {
         "domready": "0.2.11",
         "underscore": "1.4.3",
-        "reqwest": "0.6.0",
         "ender-json": "1.1.0"
     },
     "private": true,

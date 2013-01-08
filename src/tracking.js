@@ -8,8 +8,7 @@
 
 // Dependencies
 // ------------
-var _       = require("underscore"),
-    reqwest = require("reqwest");
+var _       = require("underscore");
 
 // Uses native JSON implementation if available
 var JSON = $.JSON;
@@ -75,26 +74,14 @@ _.extend(Bitdeli.Library.prototype, {
         this.cookie.unset(prop);
     },
 
-    trackEvent: function(props, opts) {
-        opts = opts || {};
-        var params = {
-            url: [EVENTS_API, this._inputId].join("/"),
-            method: "post",
-            type: "json",
-            contentType: "application/json",
-            data: JSON.stringify({
-                auth: this._token,
-                uid: this.cookie.get("$uid"),
-                event: _.extend({},
-                    this.cookie.properties(),
-                    props
-                )
-            })
-        };
-        // TODO: parse JSON response for callback functions
-        if (_.isFunction(opts.success)) params.success = opts.success;
-        if (_.isFunction(opts.error)) params.error = opts.error;
-        reqwest(params);
+    trackEvent: function(props, callback) {
+        new Bitdeli.Request({
+            inputId: this._inputId,
+            auth: this._token,
+            uid: this.cookie.get("$uid"),
+            event: _.extend(this.cookie.properties(), props),
+            callback: callback
+        });
     },
 
     _execute: function(call) {
@@ -199,6 +186,56 @@ _.extend(Bitdeli.Cookie.prototype, {
             (+new Date()).toString(16),
             _.UUID.v4()
         ].join("-");
+    }
+
+});
+
+
+// Tracking request wrapper
+Bitdeli.Request = function(options) {
+    this.options = options || {};
+    this.send();
+};
+
+_.extend(Bitdeli.Request.prototype, {
+
+    send: function() {
+        var xhr = new context.XMLHttpRequest();
+        if ("withCredentials" in xhr) {
+            // CORS supported
+            this._post();
+        } else {
+            // CORS not supported
+            // TODO: create GET request via script tag
+        }
+    },
+
+    _post: function(opts) {
+        opts = _.extend({}, this.options, opts);
+        var xhr = new XMLHttpRequest(),
+            url = [EVENTS_API, opts.inputId].join("/");
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function(e) {
+            if (xhr.readyState === 4) {
+                var response = 0;
+                if (xhr.status === 200) {
+                    try {
+                        response = JSON.parse(xhr.responseText);
+                    } catch (error) {
+                        response = 1;
+                    }
+                }
+                if (_.isFunction(opts.callback)) {
+                    opts.callback(response, opts.event);
+                }
+            }
+        };
+        xhr.send(JSON.stringify({
+            auth: opts.auth,
+            uid: opts.uid,
+            event: opts.event
+        }));
     }
 
 });

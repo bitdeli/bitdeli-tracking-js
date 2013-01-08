@@ -11,7 +11,9 @@
         // _bdq.push(["identify", "USER_ID"]);
         _bdq.push(["setOnce", { initialReferrer: document.referrer }]);
         _bdq.push(["set", { page: window.location.href }]);
-        _bdq.push(["trackEvent", { action: "test" }]);
+        _bdq.push(["trackEvent", { action: "test" }, function(resp, data) {
+            console.log("Tracked successfully: ", resp, data);
+        }]);
 
         (function() {
             // Create script element
