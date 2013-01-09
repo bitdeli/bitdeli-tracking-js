@@ -18,7 +18,9 @@ var JSON = $.JSON;
 // ---------
 var LIB_VERSION     = "0.0.1",
     EVENTS_API      = "https://events.bitdeli.com/events",
-    COOKIE_EXPIRY   = 365;
+    COOKIE_EXPIRY   = 365,
+    BD_QUEUE        = "_bdq",
+    CALLBACK_STORE  = "_cb";
 
 
 // Library initialization
@@ -30,6 +32,7 @@ var Bitdeli = {};
 Bitdeli.Library = function(queue, options) {
     this.__LV = LIB_VERSION;
     this.__SV = queue.__SV;
+    this[CALLBACK_STORE] = {};
     this.options = options || {};
     this.queue = new Bitdeli.Queue(queue, {
         execute: _.bind(this._execute, this)
@@ -80,7 +83,8 @@ _.extend(Bitdeli.Library.prototype, {
                 this.cookie.properties(),
                 props
             ),
-            callback: callback
+            callback: callback,
+            callbackStore: this[CALLBACK_STORE]
         });
     },
 
@@ -221,29 +225,41 @@ _.extend(Bitdeli.Request.prototype, {
     _post: function(opts) {
         opts = _.extend({}, this.options, opts);
         var xhr = new context.XMLHttpRequest(),
-            url = [EVENTS_API, opts.inputId].join("/");
+            url = [EVENTS_API, opts.inputId].join("/"),
+            callback = this._callback;
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.onreadystatechange = function(e) {
-            if (xhr.readyState === 4) {
-                var response = 0;
-                if (xhr.status === 200) {
-                    try {
-                        response = JSON.parse(xhr.responseText);
-                    } catch (error) {
-                        response = 1;
-                    }
-                }
-                if (_.isFunction(opts.callback)) {
-                    opts.callback(response, opts.event);
-                }
-            }
+            if (xhr.readyState === 4) callback(xhr, opts);
         };
         xhr.send(JSON.stringify({
             auth: opts.auth,
             uid: opts.uid,
             event: opts.event
         }));
+    },
+
+    _callback: function(resp, opts) {
+        var parse = function(string) {
+            try {
+                return JSON.parse(string);
+            } catch (error) {
+                return 1;
+            }
+        };
+        var response;
+        if (resp instanceof context.XMLHttpRequest && resp.status === 200) {
+            response = parse(resp.responseText);
+        } else if (_.isString(response)) {
+            response = parse(response);
+        } else if (_.isNumber(response)) {
+            response = resp;
+        } else {
+            response = +!!resp; // Force 0 or 1
+        }
+        if (_.isFunction(opts.callback)) {
+            opts.callback(response, opts.event);
+        }
     },
 
     _jsonpGet: function(opts) {
@@ -268,6 +284,9 @@ _.extend(Bitdeli.Request.prototype, {
                 JSON.stringify(opts.event)
             );
         }
+        if (_.isFunction(opts.callback)) {
+            params.callback = this._storeCallback(opts);
+        }
         return url + "?" + this._serializeParams(params);
     },
 
@@ -288,6 +307,17 @@ _.extend(Bitdeli.Request.prototype, {
             ].join("=");
         });
         return encoded.join("&");
+    },
+
+    _storeCallback: function(opts) {
+        var cbStore = opts.callbackStore,
+            randomToken = "" + Math.floor(Math.random() * 1e8),
+            callback = this._callback;
+        cbStore[randomToken] = function(response) {
+            delete cbStore[randomToken];
+            callback(response, opts);
+        };
+        return BD_QUEUE+"."+CALLBACK_STORE+'["'+randomToken+'"]';
     }
 
 });
@@ -643,7 +673,7 @@ _.UUID = (function() {
 // ------------------------------------
 $.domReady(function() {
     // Replace queue placeholder with library object
-    context._bdq = new Bitdeli.Library(context._bdq);
+    context[BD_QUEUE] = new Bitdeli.Library(context[BD_QUEUE]);
 });
 
 
