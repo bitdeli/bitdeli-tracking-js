@@ -16,7 +16,8 @@ var JSON = $.JSON;
 
 // Constants
 // ---------
-var EVENTS_API      = "https://events.bitdeli.com/events",
+var LIB_VERSION     = "0.0.1",
+    EVENTS_API      = "https://events.bitdeli.com/events",
     COOKIE_EXPIRY   = 365;
 
 
@@ -24,19 +25,14 @@ var EVENTS_API      = "https://events.bitdeli.com/events",
 // ----------------------
 var Bitdeli = {};
 
-// Get async call queue (defined in tracking snippet)
-var _bdq = context._bdq || [];
-
-// Set library version
-_bdq.__LV = "0.0.1";
-
 
 // Main library object
 Bitdeli.Library = function(queue, options) {
-    _.bindAll(this, "_execute");
+    this.__LV = LIB_VERSION;
+    this.__SV = queue.__SV;
     this.options = options || {};
     this.queue = new Bitdeli.Queue(queue, {
-        execute: this._execute
+        execute: _.bind(this._execute, this)
     });
 };
 
