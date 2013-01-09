@@ -293,9 +293,7 @@ _.extend(Bitdeli.Request.prototype, {
     _base64Encode: function(data) {
         var encoded = context.btoa(data);
         // http://en.wikipedia.org/wiki/Base64#URL_applications
-        return encoded.replace(/\+/g, "_")
-                      .replace(/\//g, "-")
-                      .replace(/\=/g, "");
+        return encoded.replace(/\+/g, "_").replace(/\//g, "-");
     },
 
     _serializeParams: function(params) {
