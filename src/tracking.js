@@ -75,7 +75,11 @@ _.extend(Bitdeli.Library.prototype, {
             inputId: this._inputId,
             auth: this._token,
             uid: this.cookie.get("$uid"),
-            event: _.extend(this.cookie.properties(), props),
+            event: _.extend({},
+                this._getMetadata(),
+                this.cookie.properties(),
+                props
+            ),
             callback: callback
         });
     },
@@ -84,6 +88,14 @@ _.extend(Bitdeli.Library.prototype, {
         // TODO: whitelist functions
         var method = this[call[0]];
         if (_.isFunction(method)) method.apply(this, call.slice(1));
+    },
+
+    _getMetadata: function() {
+        return {
+            $page_info: Bitdeli.utils.pageInfo(),
+            $bd_LV: this.__LV,
+            $bd_SV: this.__SV
+        };
     }
 
 });
@@ -283,6 +295,51 @@ _.extend(Bitdeli.Request.prototype, {
 
 // Helpers
 // -------
+
+Bitdeli.utils = {
+
+    pageInfo: function() {
+        return Bitdeli.utils.truncateData(
+            Bitdeli.utils.stripEmpty({
+                url: context.location.href,
+                ua: context.navigator.userAgent,
+                referrer: context.document.referrer
+            }), 1023
+        );
+    },
+
+    truncateData: function(obj, length) {
+        length = length || 255;
+        var result, truncate = Bitdeli.utils.truncateData;
+        if (_.isObject(obj)) {
+            result = {};
+            _.each(obj, function(val, key) {
+                result[key] = truncate(val, length);
+            });
+        } else if (_.isArray(obj)) {
+            result = _.map(obj, function(val) {
+                return truncate(val, length);
+            });
+        } else if (_.isString(obj)) {
+            result = obj.slice(0, length);
+        } else {
+            result = obj;
+        }
+        return result;
+    },
+
+    stripEmpty: function(obj) {
+        var result = {};
+        _.each(obj, function(val, key) {
+            if (_.isString(val) && val.length > 0) {
+                result[key] = val;
+            }
+        });
+        return result;
+    }
+
+};
+
 
 // Copyright (c) 2012 Florian H., https://github.com/js-coder
 // https://github.com/js-coder/cookie.js
@@ -519,6 +576,9 @@ _.UUID = (function() {
 
 })();
 
+
+// Polyfills
+// ---------
 
 // base64.js
 // https://github.com/davidchambers/Base64.js
