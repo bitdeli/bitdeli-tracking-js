@@ -279,11 +279,7 @@ _.extend(Bitdeli.Request.prototype, {
             params = {};
         if (opts.auth) params.auth = opts.auth;
         if (_.has(opts, "uid")) params.uid = opts.uid;
-        if (opts.event) {
-            params.event = this._base64Encode(
-                JSON.stringify(opts.event)
-            );
-        }
+        if (opts.event) params.event = JSON.stringify(opts.event);
         if (_.isFunction(opts.callback)) {
             params.callback = this._storeCallback(opts);
         }
@@ -301,9 +297,9 @@ _.extend(Bitdeli.Request.prototype, {
         var encoded = _.map(params, function(val, key) {
             return [
                 encodeURIComponent(key),
-                encodeURIComponent(val.toString())
+                this._base64Encode(val)
             ].join("=");
-        });
+        }, this);
         return encoded.join("&");
     },
 
