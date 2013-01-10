@@ -9,11 +9,6 @@
         _bdq["__SV"] = "0.0.1";
         _bdq.push(["setAccount", "BITDELI_INPUT_ID", "BITDELI_INPUT_AUTH"]);
         // _bdq.push(["identify", "USER_ID"]);
-        _bdq.push(["setOnce", { initialReferrer: document.referrer }]);
-        _bdq.push(["set", { username: "foobar" }]);
-        _bdq.push(["trackEvent", { action: "test" }, function(resp, data) {
-            console.log("Tracked successfully: ", resp, data);
-        }]);
 
         (function() {
             // Create script element
@@ -27,11 +22,40 @@
             s.parentNode.insertBefore(bd, s);
         })();
     </script>
+    <script type="text/javascript">
+        (function() {
+
+        console.log("******** BEGIN TEST ********");
+
+        var callback = function(method) {
+            return function(resp, data, timedOut) {
+                var success = resp === 1 || resp.uid;
+                console.log(success ? "SUCCESS" : "ERROR", method, this);
+                console.log("response", JSON.stringify(resp));
+                console.log("data", JSON.stringify(data));
+                console.log("---");
+            };
+        };
+
+        _bdq.push(["setOnce", { initialReferrer: document.referrer }]);
+        _bdq.push(["set", { username: "foobar" }]);
+        _bdq.push(["trackEvent", { action: "test" }, callback("trackEvent")]);
+        _bdq.push(["trackClick", "outbound-link", { action: "click" }, callback("trackClick")]);
+        _bdq.push(["trackSubmit", "test-form", { action: "submit" }, callback("trackSubmit")]);
+
+        })();
+    </script>
 </head>
 
 <body>
 
-<p>Test!</p>
+<h1>Bitdeli JS Tracking library test</h1>
+
+<p><a href="test.html" id="outbound-link">Outbound link</a></p>
+
+<form id="test-form">
+    <button type="submit">Submit form</button>
+</form>
 
 </body>
 

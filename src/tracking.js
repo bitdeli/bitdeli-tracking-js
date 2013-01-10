@@ -16,11 +16,12 @@ var JSON = $.JSON;
 
 // Constants
 // ---------
-var LIB_VERSION     = "0.0.1",
-    EVENTS_API      = "https://events.bitdeli.com/events",
-    COOKIE_EXPIRY   = 365,
-    BD_QUEUE        = "_bdq",
-    CALLBACK_STORE  = "_cb";
+var LIB_VERSION         = "0.0.1",
+    EVENTS_API          = "https://events.bitdeli.com/events",
+    COOKIE_EXPIRY       = 365,
+    BD_QUEUE            = "_bdq",
+    CALLBACK_STORE      = "_cb",
+    DOM_TRACKER_TIMEOUT = 300;
 
 
 // Library initialization
@@ -86,6 +87,31 @@ _.extend(Bitdeli.Library.prototype, {
             callback: callback,
             callbackStore: this[CALLBACK_STORE]
         });
+    },
+
+    trackClick: function() {
+        this._trackDOMEvent(Bitdeli.ClickTracker, arguments);
+    },
+
+    trackSubmit: function() {
+        this._trackDOMEvent(Bitdeli.SubmitTracker, arguments);
+    },
+
+    _trackDOMEvent: function(DOMEventTracker, trackArgs) {
+        var element = trackArgs[0],
+            createTracker = function(el) {
+                new DOMEventTracker({
+                    el: el,
+                    lib: this,
+                    props: trackArgs[1],
+                    callback: trackArgs[2]
+                });
+            };
+        if (_.isArray(element)) {
+            _.each(element, createTracker, this);
+        } else {
+            createTracker.call(this, element);
+        }
     },
 
     _execute: function(call) {
@@ -260,7 +286,7 @@ _.extend(Bitdeli.Request.prototype, {
             response = +!!resp; // Force 0 or 1
         }
         if (_.isFunction(opts.callback)) {
-            opts.callback(response, opts.event);
+            opts.callback.call(context, response, opts.event);
         }
     },
 
@@ -314,6 +340,140 @@ _.extend(Bitdeli.Request.prototype, {
             callback(response, opts);
         };
         return BD_QUEUE+"."+CALLBACK_STORE+'["'+randomToken+'"]';
+    }
+
+});
+
+
+// Basic DOM tracking
+// ------------------
+
+// Base interface for all DOM event tracker classes
+Bitdeli.DOMEventTracker = {
+
+    eventName: "click",
+
+    initialize: function(opts) {
+        _.bindAll(this, "_track", "_getTrackCallback");
+        this.lib = opts.lib;
+        this.el = this._getElement(opts.el);
+        if (!this.el) return;
+        this.el.addEventListener(this.eventName, this._track, false);
+    },
+
+    _getElement: function(el) {
+        if (_.isString(el)) {
+            return context.document.getElementById(el);
+        } else if (_.isElement(el)) {
+            return el;
+        } else {
+            return null;
+        }
+    },
+
+    _track: function(event) {
+        this._defaultPrevented = this.preventDefault(event);
+        if (this._defaultPrevented) {
+            // Continue with default action if there's
+            // no response from the server
+            context.setTimeout(
+                this._getTrackCallback(event, true),
+                DOM_TRACKER_TIMEOUT
+            );
+        }
+        this.lib.trackEvent(
+            this.options.props,
+            this._getTrackCallback(event)
+        );
+    },
+
+    _getTrackCallback: function(event, timedOut) {
+        timedOut = timedOut || false;
+        var opts = this.options,
+            that = this;
+        return function(trackResponse, trackedEvent) {
+            // Prevent running callback twice
+            if (that._callbackFired) return;
+            that._callbackFired = true;
+
+            if (timedOut) {
+                trackResponse = 0;
+                trackedEvent = opts.props;
+            }
+            if (_.isFunction(opts.callback)) {
+                var returnValue = opts.callback.call(that.el,
+                    trackResponse, trackedEvent, event, timedOut
+                );
+                // User can the prevent default event action
+                // by returning false from the callback
+                if (returnValue === false) return;
+            }
+            if (that._defaultPrevented) that.defaultAction();
+        };
+    },
+
+    // Override in classes that implement this interface
+    preventDefault: function(event) {
+        event.preventDefault();
+        return true;
+    },
+
+    defaultAction: function() {}
+
+};
+
+
+// Tracker for click events (e.g. outbound links)
+Bitdeli.ClickTracker = function(options) {
+    this.options = options || {};
+    this.initialize.apply(this, arguments);
+    if (this.el && _.isString(this.el.href)) {
+        this.href = this.el.href;
+    }
+};
+
+_.extend(Bitdeli.ClickTracker.prototype, Bitdeli.DOMEventTracker, {
+
+    preventDefault: function(event) {
+        // http://www.quirksmode.org/js/events_properties.html
+        var opts = this.options,
+            rightClick = event.button == 2 || event.which == 3,
+            modifier = event.ctrlKey || event.metaKey,
+            newTab = rightClick || modifier || this.el.target == "_blank";
+        if (!newTab && this.href) {
+            event.preventDefault();
+            return true;
+        } else {
+            return false;
+        }
+    },
+
+    defaultAction: function() {
+        if (!_.isString(this.href)) return;
+        var href = this.href;
+        _.defer(function() {
+            context.location = href;
+        });
+    }
+
+});
+
+
+// Tracker for submit events (e.g. forms)
+Bitdeli.SubmitTracker = function(options) {
+    this.options = options || {};
+    this.initialize.apply(this, arguments);
+};
+
+_.extend(Bitdeli.SubmitTracker.prototype, Bitdeli.DOMEventTracker, {
+
+    eventName: "submit",
+
+    defaultAction: function() {
+        var el = this.el;
+        _.defer(function() {
+            el.submit();
+        });
     }
 
 });
@@ -605,6 +765,38 @@ _.UUID = (function() {
 
 // Polyfills
 // ---------
+
+// addEventListener polyfill 1.0 / Eirik Backer / MIT Licence
+// https://gist.github.com/2864711
+(function(win, doc){
+    if(win.addEventListener)return;     //No need to polyfill
+
+    function docHijack(p){var old = doc[p];doc[p] = function(v){return addListen(old(v))}}
+    function addEvent(on, fn, self){
+        return (self = this).attachEvent('on' + on, function(e){
+            var e = e || win.event;
+            e.preventDefault  = e.preventDefault  || function(){e.returnValue = false}
+            e.stopPropagation = e.stopPropagation || function(){e.cancelBubble = true}
+            fn.call(self, e);
+        });
+    }
+    function addListen(obj, i){
+        if(i = obj.length)while(i--)obj[i].addEventListener = addEvent;
+        else obj.addEventListener = addEvent;
+        return obj;
+    }
+
+    addListen([doc, win]);
+    if('Element' in win)win.Element.prototype.addEventListener = addEvent;          //IE8
+    else{       //IE < 8
+        doc.attachEvent('onreadystatechange', function(){addListen(doc.all)});      //Make sure we also init at domReady
+        docHijack('getElementsByTagName');
+        docHijack('getElementById');
+        docHijack('createElement');
+        addListen(doc.all);
+    }
+})(context, context.document);
+
 
 // base64.js
 // https://github.com/davidchambers/Base64.js
