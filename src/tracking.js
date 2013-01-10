@@ -248,12 +248,14 @@ _.extend(Bitdeli.Request.prototype, {
             }
         };
         var response;
-        if (resp instanceof context.XMLHttpRequest && resp.status === 200) {
-            response = parse(resp.responseText);
+        if (resp instanceof context.XMLHttpRequest) {
+            if (resp.status === 200) {
+                response = parse(resp.responseText);
+            } else {
+                response = 0;
+            }
         } else if (_.isString(response)) {
             response = parse(response);
-        } else if (_.isNumber(response)) {
-            response = resp;
         } else {
             response = +!!resp; // Force 0 or 1
         }
