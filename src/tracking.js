@@ -241,28 +241,23 @@ _.extend(Bitdeli.Request.prototype, {
         var xhr = new context.XMLHttpRequest();
         if ("withCredentials" in xhr) {
             // CORS supported
-            this._post();
+            this._get();
         } else {
             // CORS not supported, use JSONP via script tag insertion
             this._jsonpGet();
         }
     },
 
-    _post: function(opts) {
+    _get: function(opts) {
         opts = _.extend({}, this.options, opts);
         var xhr = new context.XMLHttpRequest(),
-            url = [EVENTS_API, opts.inputId].join("/"),
+            url = this._buildGetUrl(opts),
             callback = this._callback;
-        xhr.open("POST", url, true);
-        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.open("GET", url, true);
         xhr.onreadystatechange = function(e) {
             if (xhr.readyState === 4) callback(xhr, opts);
         };
-        xhr.send(JSON.stringify({
-            auth: opts.auth,
-            uid: opts.uid,
-            event: opts.event
-        }));
+        xhr.send();
     },
 
     _callback: function(resp, opts) {
@@ -292,6 +287,7 @@ _.extend(Bitdeli.Request.prototype, {
 
     _jsonpGet: function(opts) {
         opts = _.extend({}, this.options, opts);
+        opts.jsonp = true;
         var script = document.createElement("script");
         script.type = "text/javascript";
         script.async = true;
@@ -308,7 +304,7 @@ _.extend(Bitdeli.Request.prototype, {
         if (opts.auth) params.auth = opts.auth;
         if (_.has(opts, "uid")) params.uid = opts.uid;
         if (opts.event) params.event = JSON.stringify(opts.event);
-        if (_.isFunction(opts.callback)) {
+        if (opts.jsonp && _.isFunction(opts.callback)) {
             params.callback = this._storeCallback(opts);
         }
         return url + "?" + this._serializeParams(params);
