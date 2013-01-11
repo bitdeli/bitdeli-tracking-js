@@ -363,7 +363,7 @@ Bitdeli.DOMEventTracker = {
             );
         }
         this.lib.trackEvent(
-            this.options.props,
+            this._getProps(this.options),
             this._getTrackCallback(event)
         );
     },
@@ -379,7 +379,7 @@ Bitdeli.DOMEventTracker = {
 
             if (timedOut) {
                 trackResponse = 0;
-                trackedEvent = opts.props;
+                trackedEvent = that._getProps(opts);
             }
             if (_.isFunction(opts.callback)) {
                 var returnValue = opts.callback.call(that.el,
@@ -391,6 +391,14 @@ Bitdeli.DOMEventTracker = {
             }
             if (that._defaultPrevented) that.defaultAction();
         };
+    },
+
+    _getProps: function(opts) {
+        var props = opts.props;
+        if (_.isFunction(opts.props)) {
+            props = opts.props.call(this.el, this.el);
+        }
+        return _.isObject(props) ? _.clone(props) : {};
     },
 
     // Override in classes that implement this interface
