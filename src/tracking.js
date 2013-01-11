@@ -74,7 +74,8 @@ _.extend(Bitdeli.Library.prototype, {
         this.cookie.unset(prop);
     },
 
-    track: function(props, callback) {
+    track: function(eventName, props, callback) {
+        if (!_.isString(eventName) || !eventName) return;
         new Bitdeli.Request({
             inputId: this._inputId,
             auth: this._token,
@@ -82,6 +83,7 @@ _.extend(Bitdeli.Library.prototype, {
             event: _.extend({},
                 this._getMetadata(),
                 this.cookie.properties(),
+                { $event_name: eventName },
                 props
             ),
             callback: callback,
@@ -103,8 +105,9 @@ _.extend(Bitdeli.Library.prototype, {
             new DOMEventTracker({
                 el: el,
                 lib: this,
-                props: trackArgs[1],
-                callback: trackArgs[2]
+                eventName: trackArgs[1],
+                props: trackArgs[2],
+                callback: trackArgs[3]
             });
         }, this);
     },
@@ -342,14 +345,14 @@ _.extend(Bitdeli.Request.prototype, {
 // Base interface for all DOM event tracker classes
 Bitdeli.DOMEventTracker = {
 
-    eventName: "click",
+    domEvent: "click",
 
     initialize: function(opts) {
         _.bindAll(this, "_track", "_getTrackCallback");
         this.lib = opts.lib;
         if (!_.isElement(opts.el)) return;
         this.el = opts.el;
-        this.el.addEventListener(this.eventName, this._track, false);
+        this.el.addEventListener(this.domEvent, this._track, false);
     },
 
     _track: function(event) {
@@ -363,6 +366,7 @@ Bitdeli.DOMEventTracker = {
             );
         }
         this.lib.track(
+            this.options.eventName,
             this._getProps(this.options),
             this._getTrackCallback(event)
         );
@@ -456,7 +460,7 @@ Bitdeli.SubmitTracker = function(options) {
 
 _.extend(Bitdeli.SubmitTracker.prototype, Bitdeli.DOMEventTracker, {
 
-    eventName: "submit",
+    domEvent: "submit",
 
     defaultAction: function() {
         var el = this.el;

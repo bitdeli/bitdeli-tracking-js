@@ -39,10 +39,10 @@
 
         _bdq.push(["setOnce", { initialReferrer: document.referrer }]);
         _bdq.push(["set", { username: "foobar" }]);
-        _bdq.push(["track", { action: "test" }, callback("track")]);
-        _bdq.push(["trackSubmit", "#test-form", { action: "submit" }, callback("trackSubmit")]);
+        _bdq.push(["track", "loaded test page", { action: "test" }, callback("track")]);
+        _bdq.push(["trackSubmit", "#test-form", "submitted test form", { action: "submit" }, callback("trackSubmit")]);
 
-        _bdq.push(["trackClick", ".outbound-link", function() {
+        _bdq.push(["trackClick", ".outbound-link", "clicked outbound link", function() {
             var href = this.href,
                 number = parseInt(href.charAt(href.length - 1), 10);
             return {
