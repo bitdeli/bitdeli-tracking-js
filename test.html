@@ -40,8 +40,8 @@
         _bdq.push(["setOnce", { initialReferrer: document.referrer }]);
         _bdq.push(["set", { username: "foobar" }]);
         _bdq.push(["trackEvent", { action: "test" }, callback("trackEvent")]);
-        _bdq.push(["trackClick", "outbound-link", { action: "click" }, callback("trackClick")]);
-        _bdq.push(["trackSubmit", "test-form", { action: "submit" }, callback("trackSubmit")]);
+        _bdq.push(["trackClick", ".outbound-link", { action: "click" }, callback("trackClick")]);
+        _bdq.push(["trackSubmit", "#test-form", { action: "submit" }, callback("trackSubmit")]);
 
         })();
     </script>
@@ -51,7 +51,11 @@
 
 <h1>Bitdeli JS Tracking library test</h1>
 
-<p><a href="test.html" id="outbound-link">Outbound link</a></p>
+<ul>
+    <li><a href="test.html?1" class="outbound-link">Outbound link 1</a></li>
+    <li><a href="test.html?2" class="outbound-link">Outbound link 2</a></li>
+    <li><a href="test.html?3" class="outbound-link">Outbound link 3</a></li>
+</ul>
 
 <form id="test-form">
     <button type="submit">Submit form</button>

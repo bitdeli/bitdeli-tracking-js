@@ -98,20 +98,15 @@ _.extend(Bitdeli.Library.prototype, {
     },
 
     _trackDOMEvent: function(DOMEventTracker, trackArgs) {
-        var element = trackArgs[0],
-            createTracker = function(el) {
-                new DOMEventTracker({
-                    el: el,
-                    lib: this,
-                    props: trackArgs[1],
-                    callback: trackArgs[2]
-                });
-            };
-        if (_.isArray(element)) {
-            _.each(element, createTracker, this);
-        } else {
-            createTracker.call(this, element);
-        }
+        var elements = Bitdeli.utils.getElements(trackArgs[0]);
+        _.each(elements, function(el) {
+            new DOMEventTracker({
+                el: el,
+                lib: this,
+                props: trackArgs[1],
+                callback: trackArgs[2]
+            });
+        }, this);
     },
 
     _execute: function(call) {
@@ -352,19 +347,9 @@ Bitdeli.DOMEventTracker = {
     initialize: function(opts) {
         _.bindAll(this, "_track", "_getTrackCallback");
         this.lib = opts.lib;
-        this.el = this._getElement(opts.el);
-        if (!this.el) return;
+        if (!_.isElement(opts.el)) return;
+        this.el = opts.el;
         this.el.addEventListener(this.eventName, this._track, false);
-    },
-
-    _getElement: function(el) {
-        if (_.isString(el)) {
-            return context.document.getElementById(el);
-        } else if (_.isElement(el)) {
-            return el;
-        } else {
-            return null;
-        }
     },
 
     _track: function(event) {
@@ -518,6 +503,29 @@ Bitdeli.utils = {
             }
         });
         return result;
+    },
+
+    getElements: function(selector) {
+        var results = [],
+            getRecursive = Bitdeli.utils.getElements,
+            doc = context.document;
+        if (_.isArray(selector)) {
+            _.each(selector, function(sel) {
+                results.push.apply(results, getRecursive(sel));
+            }, this);
+        } else if (_.isString(selector) && selector.length) {
+            var first = selector.charAt(0),
+                name = selector.substring(1);
+            if (first == ".") {
+                results.push.apply(results, doc.getElementsByClassName(name));
+            } else if (first == "#") {
+                var el = doc.getElementById(name);
+                if (el) results.push(el);
+            }
+        } else if (_.isElement(selector)) {
+            results.push(selector);
+        }
+        return results;
     }
 
 };
@@ -761,6 +769,37 @@ _.UUID = (function() {
 
 // Polyfills
 // ---------
+
+// Add a getElementsByClassName function if the browser doesn't have one
+// Limitation: only works with one class name
+// Copyright: Eike Send http://eike.se/nd
+// License: MIT License
+(function(window, document) {
+    if (document.getElementsByClassName) return;
+    document.getElementsByClassName = function(search) {
+        var d = document, elements, pattern, i, results = [];
+        if (d.querySelectorAll) { // IE8
+            return d.querySelectorAll("." + search);
+        }
+        if (d.evaluate) { // IE6, IE7
+            pattern = ".//*[contains(concat(' ', @class, ' '), ' " + search + " ')]";
+            elements = d.evaluate(pattern, d, null, 0, null);
+            while ((i = elements.iterateNext())) {
+                results.push(i);
+            }
+        } else {
+            elements = d.getElementsByTagName("*");
+            pattern = new RegExp("(^|\\s)" + search + "(\\s|$)");
+            for (i = 0; i < elements.length; i++) {
+                if ( pattern.test(elements[i].className) ) {
+                    results.push(elements[i]);
+                }
+            }
+        }
+        return results;
+    };
+})(context, context.document);
+
 
 // addEventListener polyfill 1.0 / Eirik Backer / MIT Licence
 // https://gist.github.com/2864711
