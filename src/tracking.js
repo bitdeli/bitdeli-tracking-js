@@ -91,6 +91,17 @@ _.extend(Bitdeli.Library.prototype, {
         });
     },
 
+    trackPageview: function(page, callback) {
+        // First argument can be the callback
+        if (_.isFunction(page)) {
+            callback = page;
+            page = void 0;
+        }
+        // If page is not defined use current URL
+        if (_.isUndefined(page)) page = context.location.href;
+        this.track("$pageview", { $page: page }, callback);
+    },
+
     trackClick: function() {
         this._trackDOMEvent(Bitdeli.ClickTracker, arguments);
     },
