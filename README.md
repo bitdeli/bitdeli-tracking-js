@@ -1,7 +1,9 @@
 JavaScript tracking library for Bitdeli
 =======================================
 
-This library is currently **not ready for production use**. [Contact us](https://bitdeli.com/contact) if you are interested in contributing or being an early tester.
+Coming soon: Build instructions and documentation
+
+[Contact us](https://bitdeli.com/contact) if you are interested in being an early tester.
 
 [Bitdeli Home](https://bitdeli.com)
 
