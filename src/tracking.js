@@ -74,7 +74,7 @@ _.extend(Bitdeli.Library.prototype, {
         this.cookie.unset(prop);
     },
 
-    trackEvent: function(props, callback) {
+    track: function(props, callback) {
         new Bitdeli.Request({
             inputId: this._inputId,
             auth: this._token,
@@ -362,7 +362,7 @@ Bitdeli.DOMEventTracker = {
                 DOM_TRACKER_TIMEOUT
             );
         }
-        this.lib.trackEvent(
+        this.lib.track(
             this._getProps(this.options),
             this._getTrackCallback(event)
         );

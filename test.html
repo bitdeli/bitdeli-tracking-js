@@ -39,7 +39,7 @@
 
         _bdq.push(["setOnce", { initialReferrer: document.referrer }]);
         _bdq.push(["set", { username: "foobar" }]);
-        _bdq.push(["trackEvent", { action: "test" }, callback("trackEvent")]);
+        _bdq.push(["track", { action: "test" }, callback("track")]);
         _bdq.push(["trackSubmit", "#test-form", { action: "submit" }, callback("trackSubmit")]);
 
         _bdq.push(["trackClick", ".outbound-link", function() {
