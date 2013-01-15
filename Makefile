@@ -1,9 +1,13 @@
-LIB_VERSION = 0.0.1
+BUILD_DIR = ./build
+OUTPUT = ${BUILD_DIR}/bitdeli-0.0.1
 
-all: clean ender
-
-ender: clean
-	ender build . --output ./build/bitdeli-${LIB_VERSION} --sandbox
+all: build compile
 
 clean:
-	rm -rf ./build/*
+	rm -rf ${BUILD_DIR}/*
+
+build: clean
+	ender build . --output ${OUTPUT} --sandbox --minifier none
+
+compile:
+	ender compile --use ${OUTPUT}.js --output ${OUTPUT}.min.js --level simple
