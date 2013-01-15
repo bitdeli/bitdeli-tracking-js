@@ -1,0 +1,11 @@
+var _bdq = _bdq || [];
+_bdq["__SV"] = "{{SNIPPET_VERSION}}";
+_bdq.push(["setAccount", "{{BITDELI_INPUT_ID}}", "{{BITDELI_INPUT_AUTH}}"]);
+_bdq.push(["trackPageview"]);
+
+(function() {
+    var bd = document.createElement("script"); bd.type = "text/javascript"; bd.async = true;
+    // bd.src = ("https:" == document.location.protocol ? "https://" : "http://") + "{{CLOUDFRONT_ACCOUNT}}.cloudfront.com/bitdeli-{{LIB_VERSION}}.min.js";
+    bd.src = "build/bitdeli-{{LIB_VERSION}}.js";
+    var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(bd, s);
+})();
