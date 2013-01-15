@@ -1,11 +1,18 @@
 {
     "name": "bitdeli-tracking-js",
     "version": "0.0.1",
+    "author": "Bitdeli Inc. <support@bitdeli.com>",
+    "description": "JavaScript tracking library for Bitdeli",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bitdeli/bitdeli-tracking-js.git"
+    },
     "dependencies": {
         "domready": "0.2.11",
         "underscore": "1.4.3",
         "ender-json": "1.1.0"
     },
+    "license": "MIT",
     "private": true,
     "main": "./src/tracking.js"
 }
