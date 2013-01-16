@@ -31,8 +31,7 @@ var Bitdeli = {};
 
 // Main library object
 Bitdeli.Library = function(queue, options) {
-    this.__LV = LIB_VERSION;
-    this.__SV = queue.__SV;
+    this._version = LIB_VERSION;
     this[CALLBACK_STORE] = {};
     this.options = options || {};
     this.queue = new Bitdeli.Queue(queue, {
@@ -132,8 +131,7 @@ _.extend(Bitdeli.Library.prototype, {
     _getMetadata: function() {
         return {
             $page_info: Bitdeli.utils.pageInfo(),
-            $bd_LV: this.__LV,
-            $bd_SV: this.__SV
+            $lib_ver: this._version
         };
     }
 
