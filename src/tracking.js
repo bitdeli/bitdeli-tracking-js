@@ -314,6 +314,7 @@ _.extend(Bitdeli.Request.prototype, {
         if (opts.jsonp && _.isFunction(opts.callback)) {
             params.callback = this._storeCallback(opts);
         }
+        params._ = new Date().getTime().toString();
         return url + "?" + this._serializeParams(params);
     },
 
