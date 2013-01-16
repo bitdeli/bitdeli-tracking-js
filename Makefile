@@ -4,9 +4,10 @@ OUTPUT = ${BUILD_DIR}/bitdeli-0.0.1
 all: build compile
 
 clean:
-	rm -rf ${BUILD_DIR}/*
+	rm -f ${OUTPUT}.js ${OUTPUT}.min.js
 
 build: clean
+	mkdir -p ${BUILD_DIR}
 	ender build . --output ${OUTPUT} --sandbox --minifier none
 
 compile:
