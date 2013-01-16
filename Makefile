@@ -1,5 +1,6 @@
+LIB_VERSION = 0.0.1
 BUILD_DIR = ./build
-OUTPUT = ${BUILD_DIR}/bitdeli-0.0.1
+OUTPUT = ${BUILD_DIR}/bitdeli-${LIB_VERSION}
 
 all: build compile
 
