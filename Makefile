@@ -1,4 +1,4 @@
-LIB_VERSION = 0.9.0
+LIB_VERSION = 0.9.1
 BUILD_DIR = ./build
 OUTPUT = ${BUILD_DIR}/bitdeli-${LIB_VERSION}
 
