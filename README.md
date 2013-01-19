@@ -1,11 +1,18 @@
 JavaScript tracking library for Bitdeli
 =======================================
 
-**Coming soon: Usage instructions and documentation**
-
 [Contact us](https://bitdeli.com/contact) if you are interested in being an early tester.
 
 [Bitdeli Home](https://bitdeli.com)
+
+
+## Documentation ##
+
+See the complete Bitdeli documentation at https://bitdeli.com/docs/
+
+- Getting Started (coming soon)
+- Tracking Code (coming soon)
+- [JavaScript Library API Reference](https://bitdeli.com/docs/javascript-api.html)
 
 
 ## Developers ##
