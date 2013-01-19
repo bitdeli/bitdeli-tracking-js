@@ -4,6 +4,20 @@
 JavaScript Library API
 ======================
 
+.. table::
+
+   ====================== =====
+   :ref:`js-async-api`    :js:data:`window._bdq`, :js:func:`_bdq.push`
+   ---------------------- -----
+   :ref:`js-api-init`     :js:func:`setAccount`
+   ---------------------- -----
+   :ref:`js-api-props`    :js:func:`identify`, :js:func:`set`, :js:func:`setOnce`,
+                          :js:func:`unset`
+   ---------------------- -----
+   :ref:`js-api-tracking` :js:func:`track`, :js:func:`trackPageview`,
+                          :js:func:`trackClick`, :js:func:`trackSubmit`
+   ====================== =====
+
 
 .. _js-async-api:
 
