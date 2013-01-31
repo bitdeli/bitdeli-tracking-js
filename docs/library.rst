@@ -70,5 +70,5 @@ without affecting the loading time of other elements on your site.
 For more details on using the tracking library, see the :doc:`javascript-api`.
 
 If you are using multiple analytics providers you can also use `analytics.js
-<https://segment.io/libraries/analytics.js>`_ to embed and use the Bitdeli
+<https://github.com/segmentio/analytics.js>`_ to embed and use the Bitdeli
 library alongside other tracking libraries.
