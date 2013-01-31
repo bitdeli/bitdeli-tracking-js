@@ -4,6 +4,13 @@
 JavaScript Library API
 ======================
 
+See the :doc:`javascript-library` main page for more information and setup
+instructions.
+
+
+Method Index
+------------
+
 .. table::
 
    ====================== =====
