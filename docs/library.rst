@@ -14,7 +14,7 @@ JavaScript Library
 The Bitdeli JavaScript library provides an easy and flexible way to gather usage
 data from any web application directly to Bitdeli. The library is similar to the
 ones provided by other analytics providers such as Google Analytics, Mixpanel
-and KISSmetrics. See the :doc:`API reference <javascript-api>` for more details.
+and KISSmetrics.
 
 The main features of the Bitdeli JavaScript library are:
 
@@ -23,6 +23,8 @@ The main features of the Bitdeli JavaScript library are:
 - **Tracking user actions**, such as page views, clicks and form submissions
 - **Automatically gathering page visit information**, such as browser user agent
   strings and referrers
+
+See :doc:`API reference <javascript-api>` for detailed documentation.
 
 Since the data from the tracking library is sent directly to Bitdeli, your
 :ref:`cards <card-script>` will update more frequently than with our 3rd party
