@@ -1,8 +1,6 @@
 JavaScript tracking library for Bitdeli
 =======================================
 
-[Contact us](https://bitdeli.com/contact) if you are interested in being an early tester.
-
 [Bitdeli Home](https://bitdeli.com)
 
 
