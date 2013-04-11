@@ -1,6 +1,6 @@
 /*!
   * Bitdeli JavaScript tracking library
-  * Copyright (c) 2012 Bitdeli Inc
+  * Copyright (c) 2013 Bitdeli Inc
   * https://github.com/bitdeli/bitdeli-tracking-js
   * MIT license
   */
