@@ -19,10 +19,10 @@ _Please note: The following instructions are intended for developers contributin
 This library uses the [Ender](http://ender.jit.su/) package manager to compile multiple modules to one distributable file. To install the latest version of Ender, run the following [npm](https://npmjs.org/) command (you may have to use `sudo` to install the package globally):
 
 ```
-[sudo] npm install ender@dev -g
+[sudo] npm install ender -g
 ```
 
-_These build instructions have been tested to work on version `0.9.13-dev` of the `ender` package._
+_These build instructions have been tested to work on version `1.0.0` of the `ender` package._
 
 To build and compile the library and its dependencies, run the included Makefile:
 
