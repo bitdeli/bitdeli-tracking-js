@@ -9,7 +9,7 @@
     },
     "dependencies": {
         "domready": "0.2.11",
-        "underscore": "1.4.3",
+        "underscore": "1.4.4",
         "ender-json": "1.1.0"
     },
     "license": "MIT",
