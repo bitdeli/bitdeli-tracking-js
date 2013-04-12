@@ -11,7 +11,7 @@
 
         var callback = function(method) {
             return function(resp, data, timedOut) {
-                var success = resp === 1 || resp.uid;
+                var success = resp === 1 || resp.uid || resp.status == "ok";
                 console.log(success ? "SUCCESS" : "ERROR", method, this);
                 console.log("response", JSON.stringify(resp));
                 console.log("data", JSON.stringify(data));
@@ -33,6 +33,11 @@
                 link_num: number
             };
         }, callback("trackClick")]);
+
+        _bdq.push(["trackRaw", [
+            { $event_name: "raw test", raw_property: 5 },
+            { $event_name: "raw test", raw_property: 6 }
+        ], callback("trackRaw")]);
 
         })();
     </script>

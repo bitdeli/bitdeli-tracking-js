@@ -75,7 +75,7 @@ _.extend(Bitdeli.Library.prototype, {
 
     track: function(eventName, props, callback) {
         if (!_.isString(eventName) || !eventName) return;
-        new Bitdeli.Request({
+        new Bitdeli.GetRequest({
             inputId: this._inputId,
             auth: this._token,
             uid: this.cookie.get("$uid"),
@@ -107,6 +107,26 @@ _.extend(Bitdeli.Library.prototype, {
 
     trackSubmit: function() {
         this._trackDOMEvent(Bitdeli.SubmitTracker, arguments);
+    },
+
+    trackRaw: function(events, callback) {
+        if (!_.isArray(events)) events = [events];
+
+        var authenticated = _(events).chain()
+            .map(function(event) {
+                if (!_.isObject(event)) return;
+                return {
+                    auth: this._token,
+                    uid: this.cookie.get("$uid"),
+                    event: event
+                };
+            }, this).compact().value();
+
+        new Bitdeli.PostRequest({
+            inputId: this._inputId,
+            events: authenticated,
+            callback: callback
+        });
     },
 
     _trackDOMEvent: function(DOMEventTracker, trackArgs) {
@@ -236,35 +256,20 @@ _.extend(Bitdeli.Cookie.prototype, {
 });
 
 
-// Tracking request wrapper
-Bitdeli.Request = function(options) {
-    this.options = options || {};
-    this.send();
-};
-
-_.extend(Bitdeli.Request.prototype, {
+// Base interface for request classes
+Bitdeli.Request = {
 
     send: function() {
-        var xhr = new context.XMLHttpRequest();
-        if ("withCredentials" in xhr) {
+        if (this._supportsXHRCors()) {
             // CORS supported
-            this._get();
+            this.sendXHR();
+        } else if (this._supportsXDRCors()) {
+            // Otherwise use XDomainRequest (IE8+)
+            this.sendXDR();
         } else {
             // CORS not supported, use JSONP via script tag insertion
-            this._jsonpGet();
+            this.sendJSONP();
         }
-    },
-
-    _get: function(opts) {
-        opts = _.extend({}, this.options, opts);
-        var xhr = new context.XMLHttpRequest(),
-            url = this._buildGetUrl(opts),
-            callback = this._callback;
-        xhr.open("GET", url, true);
-        xhr.onreadystatechange = function(e) {
-            if (xhr.readyState === 4) callback(xhr, opts);
-        };
-        xhr.send();
     },
 
     _callback: function(resp, opts) {
@@ -276,7 +281,7 @@ _.extend(Bitdeli.Request.prototype, {
             }
         };
         var response;
-        if (resp instanceof context.XMLHttpRequest) {
+        if (_.isObject(resp) && resp.status && resp.responseText) {
             if (resp.status === 200) {
                 response = parse(resp.responseText);
             } else {
@@ -288,11 +293,62 @@ _.extend(Bitdeli.Request.prototype, {
             response = +!!resp; // Force 0 or 1
         }
         if (_.isFunction(opts.callback)) {
-            opts.callback.call(context, response, opts.event);
+            opts.callback.call(context, response, opts);
         }
     },
 
-    _jsonpGet: function(opts) {
+    _supportsXHRCors: function() {
+        var xhr = new context.XMLHttpRequest();
+        return "withCredentials" in xhr;
+    },
+
+    _supportsXDRCors: function() {
+        // TODO: support http -> https requests via iframe proxy
+        return typeof XDomainRequest != "undefined" &&
+            context.location.protocol == "https:";
+    },
+
+    // Methods to implement
+    sendXHR: function() {},
+    sendXDR: function() {},
+    sendJSONP: function() {}
+
+};
+
+
+// GET request wrapper
+Bitdeli.GetRequest = function(options) {
+    this.options = options || {};
+    this.send();
+};
+
+_.extend(Bitdeli.GetRequest.prototype, Bitdeli.Request, {
+
+    sendXHR: function(opts) {
+        opts = _.extend({}, this.options, opts);
+        var xhr = new context.XMLHttpRequest(),
+            url = this._buildGetUrl(opts),
+            callback = this._callback;
+        xhr.open("GET", url, true);
+        xhr.onreadystatechange = function(e) {
+            if (xhr.readyState === 4) callback(xhr, opts);
+        };
+        xhr.send();
+    },
+
+    sendXDR: function(opts) {
+        opts = _.extend({}, this.options, opts);
+        var xdr = new XDomainRequest(),
+            url = this._buildGetUrl(opts),
+            callback = this._callback;
+        xdr.onload = function() {
+            callback(xdr, opts);
+        };
+        xdr.open("GET", url);
+        xdr.send();
+    },
+
+    sendJSONP: function(opts) {
         opts = _.extend({}, this.options, opts);
         opts.jsonp = true;
         var script = document.createElement("script");
@@ -344,6 +400,42 @@ _.extend(Bitdeli.Request.prototype, {
             callback(response, opts);
         };
         return BD_QUEUE+"."+CALLBACK_STORE+'["'+randomToken+'"]';
+    }
+
+});
+
+
+// POST request wrapper (only works with CORS)
+Bitdeli.PostRequest = function(options) {
+    this.options = _.extend({}, {
+        postData: JSON.stringify(options.events || []),
+        url: [EVENTS_API, options.inputId].join("/")
+    }, options);
+    this.send();
+};
+
+_.extend(Bitdeli.PostRequest.prototype, Bitdeli.Request, {
+
+    sendXHR: function(opts) {
+        opts = _.extend({}, this.options, opts);
+        var xhr = new context.XMLHttpRequest(),
+            callback = this._callback;
+        xhr.open("POST", opts.url, true);
+        xhr.onreadystatechange = function(e) {
+            if (xhr.readyState === 4) callback(xhr, opts);
+        };
+        xhr.send(opts.postData);
+    },
+
+    sendXDR: function(opts) {
+        opts = _.extend({}, this.options, opts);
+        var xdr = new XDomainRequest(),
+            callback = this._callback;
+        xdr.onload = function() {
+            callback(xdr, opts);
+        };
+        xdr.open("POST", opts.url);
+        xdr.send(opts.postData);
     }
 
 });
