@@ -17,7 +17,7 @@ var JSON = $.JSON;
 // Constants
 // ---------
 var LIB_VERSION         = "0.9.1",
-    EVENTS_API          = "https://events.bitdeli.com/events",
+    EVENTS_API          = "https://track.bitdeli.com/events",
     COOKIE_EXPIRY       = 365,
     BD_QUEUE            = "_bdq",
     CALLBACK_STORE      = "_cb",
